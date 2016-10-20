@@ -1,0 +1,17 @@
+application: codesf-suggest
+api_version: 1
+version: 1a
+threadsafe: true
+runtime: python27
+
+handlers:
+- url: .*  # This regex directs all routes to main.app
+  script: codesf_suggest.main.app
+
+libraries:
+  - name: MySQLdb
+    version: latest
+
+skip_files:
+  - ^env$
+

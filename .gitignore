@@ -1,0 +1,11 @@
+env/
+venv/
+lib/
+migrations/
+*.json
+*.pyc
+*.log
+*.note
+*.bash
+*.sh
+

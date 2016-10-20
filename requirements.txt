@@ -1,0 +1,13 @@
+Flask
+flask-login
+Jinja2
+MarkupSafe
+SQLAlchemy
+Werkzeug
+itsdangerous
+jsonschema
+nose
+
+gcloud
+gunicorn
+functools32
