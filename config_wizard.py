@@ -15,32 +15,14 @@ def main():
     token = b64encode(random_bytes).decode('utf-8')
     secret_env_key = token
 
-    print("Configuring project variables configuration file.")
-    db_name = input('Please enter SQL database name.> ')
-    username = input('Please enter db admin username.> ')
-    # password = getpass.getpass('Enter db admin password:> ')
-
-    host = input("Please enter database host server (leave blank for default localhost) > ")
-    port = input("Please enter port number (leave blank for default port 5432.> ")
-    if host == "": host = "127.0.0.1"
-    if port == "": port = 5432
 
 
     conf_dict = {
-    "dbname": db_name,
-    "user": username,
-    "host": host,
-    "port": port,
+
     "secret_key": secret_env_key
     }
 
-    ssh_certs = {
-    'ssl': {
-        'cert':'/path/to/client-cert', 
-        'key':'/path/to/client-key', 
-        'ca':'/path/to/ca-cert'
-        }
-    }
+
 
 
     filename = "main_config_variables.json"
@@ -53,7 +35,7 @@ def main():
         )
 
     # Change dbname to the test db and write test config file
-    conf_dict["dbname"] = db_name + "-test"
+
     filename = "test_config_variables.json"
     with open(filename, 'w') as cfg:
         cfg.write(json.dumps(conf_dict, 

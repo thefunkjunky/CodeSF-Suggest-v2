@@ -2,12 +2,13 @@ Flask
 flask-login
 Jinja2
 MarkupSafe
-SQLAlchemy
+
 Werkzeug
 itsdangerous
 jsonschema
-nose
 
-gcloud
+
+google-cloud
+google-api-python-client
 gunicorn
 functools32

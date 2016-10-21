@@ -1,32 +1,23 @@
-import os.path
 
-import datetime
+from google.appengine.ext import ndb
 
-from flask import url_for
 from flask.json import jsonify
-from flask_login import UserMixin
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, Sequence, ForeignKey, Enum
-from sqlalchemy.orm import relationship, validates, column_property, backref
 
 
-from .database import Base, engine
-
-class User(Base, UserMixin):
+class User(ndb.Model):
     """ Base User Class """
-    __tablename__ = "user"
-    id = Column(Integer, primary_key=True)
-    password = Column(Text)
-    name = Column(Text, nullable=False)
-    email = Column(Text, nullable=False)
-    organization = Column(Text)
-    position = Column(Text)
-    description = Column(Text)
-    start_date = Column(DateTime, default=datetime.datetime.utcnow())
-    last_modified = Column(DateTime, onupdate=datetime.datetime.utcnow())
-    image = Column(Text)
+    password = ndb.StringProperty()
+    name = ndb.StringProperty()
+    email = ndb.StringProperty()
+    organization = ndb.StringProperty()
+    position = ndb.StringProperty()
+    description = ndb.StringProperty()
+    start_date = ndb.DateTimeProperty(auto_now_add=True)
+    last_modified = ndb.DateTimeProperty(auto_now=True)
+    image = ndb.StringProperty()
 
     # Foreign relationships
-    posts = relationship("Post", backref="admin", cascade="all, delete-orphan")
+    posts = ndb.StructuredProperty(Post, repeated=True)
     # volunteered_posts = relationship("Post", backref="user")
 
     def as_dictionary(self):
@@ -44,23 +35,18 @@ class User(Base, UserMixin):
         }
         return user_dict
 
-class Post(Base):
+class Post(ndb.Model):
     """ Base Post Class """
-    __tablename__ = "post"
-    id = Column(Integer, primary_key=True)
-    title = Column(Text, nullable=False)
-    short_description = Column(Text)
-    long_description = Column(Text)
-    organization = Column(Text)
-    image = Column(Text)
-    start_date = Column(DateTime, default=datetime.datetime.utcnow())
-    last_modified = Column(DateTime, onupdate=datetime.datetime.utcnow())
-    slack = Column(Text)
+    title = ndb.StringProperty()
+    short_description = ndb.StringProperty()
+    long_description = ndb.StringProperty()
+    organization = ndb.StringProperty()
+    image = ndb.StringProperty()
+    start_date = ndb.DateTimeProperty(auto_now_add=True)
+    last_modified = ndb.DateTimeProperty(auto_now=True)
+    slack = ndb.StringProperty()
 
 
-    # Foreign relationships
-    admin_id = Column(Integer, ForeignKey("user.id"), nullable=False, default=1)
-    # volunteers = relationship("user")
 
     def as_dictionary(self):
         post_dict = {
