@@ -1,7 +1,6 @@
 
 from google.appengine.ext import ndb
 
-from flask.json import jsonify
 
 
 class User(ndb.Model):
@@ -18,11 +17,9 @@ class User(ndb.Model):
 
     # Foreign relationships
     posts = ndb.StructuredProperty(Post, repeated=True)
-    # volunteered_posts = relationship("Post", backref="user")
 
     def as_dictionary(self):
         user_dict = {
-        "id": self.id,
         "password": self.password,
         "name": self.name,
         "email": self.email,
@@ -50,7 +47,6 @@ class Post(ndb.Model):
 
     def as_dictionary(self):
         post_dict = {
-        "id": self.id,
         "title": self.title,
         "short_description": self.short_description,
         "long_description": self.long_description,
