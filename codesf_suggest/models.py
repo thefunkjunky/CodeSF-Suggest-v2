@@ -7,6 +7,7 @@ class User(ndb.Model):
     """ Base User Class """
     password = ndb.StringProperty()
     name = ndb.StringProperty()
+    username = ndb.StringProperty()
     email = ndb.StringProperty()
     organization = ndb.StringProperty()
     position = ndb.StringProperty()
@@ -22,6 +23,7 @@ class User(ndb.Model):
         user_dict = {
         "password": self.password,
         "name": self.name,
+        "username": self.username,
         "email": self.email,
         "organization": self.organization,
         "position": self.position,
@@ -34,6 +36,7 @@ class User(ndb.Model):
 
 class Post(ndb.Model):
     """ Base Post Class """
+    id = ndb.IntegerProperty()
     title = ndb.StringProperty()
     short_description = ndb.StringProperty()
     long_description = ndb.StringProperty()
@@ -47,6 +50,7 @@ class Post(ndb.Model):
 
     def as_dictionary(self):
         post_dict = {
+        "id": self.id,
         "title": self.title,
         "short_description": self.short_description,
         "long_description": self.long_description,
@@ -59,5 +63,14 @@ class Post(ndb.Model):
         }
 
 
+class TestUser(User):
+    """ Test User Class """
+    pass
+
+
+
+class TestPost(Post):
+    """ Test Post Class """
+    pass
 
 

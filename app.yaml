@@ -1,10 +1,12 @@
 application: codesf-suggest
 api_version: 1
-version: 1a
+version: .01a
 threadsafe: true
 runtime: python27
 
 handlers:
+- url: /static
+  static_dir: codesf_suggest/static
 - url: .*  # This regex directs all routes to main.app
   script: codesf_suggest.main.app
 
@@ -14,4 +16,7 @@ libraries:
 
 skip_files:
   - ^env$
+  - ^.git*
+  - ^.python-version$
+  - ^*.pyc$
 

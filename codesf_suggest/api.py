@@ -5,10 +5,13 @@ from flask import request, Response, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 from jsonschema import validate, ValidationError
 
+from google.appengine.ext import ndb
+
+
 from . import models
 from . import decorators
 from .main import app
-from .database import session
+
 
 
 # JSON scheme validators
@@ -85,7 +88,7 @@ DELETE_schema = {
 
 
 def check_post_id(post_id):
-    post = session.query(models.Post).get(post_id)
+    post = models.Post(models.Post).get(post_id)
     if not post:
         message = "Could not find post with id {}".format(post_id)
         data = json.dumps({"message": message})
