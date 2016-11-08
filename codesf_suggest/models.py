@@ -17,7 +17,7 @@ class User(ndb.Model):
     image = ndb.StringProperty()
 
     # Foreign relationships
-    posts = ndb.StructuredProperty(Post, repeated=True)
+    # posts = ndb.StructuredProperty(Post, repeated=True)
 
     def as_dictionary(self):
         user_dict = {
@@ -36,7 +36,6 @@ class User(ndb.Model):
 
 class Post(ndb.Model):
     """ Base Post Class """
-    id = ndb.IntegerProperty()
     title = ndb.StringProperty()
     short_description = ndb.StringProperty()
     long_description = ndb.StringProperty()
@@ -46,11 +45,12 @@ class Post(ndb.Model):
     last_modified = ndb.DateTimeProperty(auto_now=True)
     slack = ndb.StringProperty()
 
+    # user = ndb.KeyProperty(kind=User)
+
 
 
     def as_dictionary(self):
         post_dict = {
-        "id": self.id,
         "title": self.title,
         "short_description": self.short_description,
         "long_description": self.long_description,
@@ -58,7 +58,6 @@ class Post(ndb.Model):
         "image": self.image,
         "start_date": self.start_date,
         "last_modified": self.last_modified,
-        "admin_id": self.admin_id,
         "slack": self.slack,
         }
 
@@ -66,7 +65,7 @@ class Post(ndb.Model):
 class TestUser(User):
     """ Test User Class """
     pass
-
+''
 
 
 class TestPost(Post):

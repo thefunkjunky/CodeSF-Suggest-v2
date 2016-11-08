@@ -38,10 +38,10 @@ post_POST_schema = {
         "long_description": {"type": "string"},
         "organization": {"type": "string"},
         "image": {"type": "string"},
-        "admin_id": {"type": "number"},
+        "user_id": {"type": "number"},
         "slack": {"type": "string"},
     },
-    "required": ["title", "admin_id", "short_description"]
+    "required": ["title", "user_id", "short_description"]
 }
 
 user_PUT_schema = {
@@ -88,18 +88,22 @@ DELETE_schema = {
 
 
 def check_post_id(post_id):
-    post = models.Post(models.Post).get(post_id)
+    post_key = ndb.Key(urlsafe=post_id)
+    post = post_key.get()
     if not post:
         message = "Could not find post with id {}".format(post_id)
         data = json.dumps({"message": message})
         return Response(data, 404, mimetype="application/json")
+    return post
 
 def check_user_id(user_id):
-    user = session.query(models.User).get(user_id)
+    user_key = ndb.Key(urlsafe=user_id)
+    user = user_key.get()
     if not user:
         message = "Could not find user with id {}".format(user_id)
         data = json.dumps({"message": message})
         return Response(data, 404, mimetype="application/json")
+    return user
 
 @app.route("/api/posts", methods=["GET"])
 @app.route("/api/users/<int:user_id>/posts", methods=["GET"])
@@ -108,13 +112,15 @@ def posts_get(user_id=None):
     """ Returns a list of posts """
 
     if user_id:
-        check_user_id(user_id)
+        user = check_user_id(user_id)
+        # Figure out ancestor queries
+        posts = models.Post.query(ancestor=user.key).fetch().order(models.Post.id)
+    else:
+        posts = models.Post.query().order(models.Post.id)
 
-    posts = session.query(models.Post)
-    posts = posts.order_by(models.Post.id)
 
     if not posts:
-        message = "No posts in database."
+        message = "No posts found."
         data = json.dumps({"message": message})
         return Response(data, 404, mimetype="application/json")
 
@@ -127,9 +133,8 @@ def posts_get(user_id=None):
 def post_get(post_id):
     """ Returns a specific post """
 
-    check_post_id(post_id)
+    post = check_post_id(post_id)
 
-    post = session.query(models.Post).get(post_id)
 
     # Check for post's existence
     if not post:
@@ -145,9 +150,8 @@ def post_get(post_id):
 def user_get(user_id):
     """ Returns User data """
 
-    check_user_id(user_id)
+    user = check_user_id(user_id)
 
-    user = session.query(models.User).get(user_id)
 
     if not user:
         message = "Could not find user with id #{}".format(user_id)
@@ -174,9 +178,8 @@ def posts_post():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    post = models.Post(**data)
-    session.add(post)
-    session.commit()
+    user = check_user_id(user_id)
+    post = models.Post(parent=user.key, data**)
 
     # Return a 201 Created, containing the post as JSON and with the 
     # Location header set to the location of the post
@@ -198,16 +201,14 @@ def users_post():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    user = session.query(models.User).filter(
-        models.User.email == data["email"]).first()
+    user = models.User.query(email == data["email"])
     if user:
         message = "User with email {} already exists.".format(user.email)
         data = json.dumps({"message": message})
         return Response(data, 403, mimetype="application/json")
 
-    user = models.User(**data)
-    session.add(user)
-    session.commit()
+    user = models.User(data**)
+    user.put()
 
     # Return a 201 Created, containing the user as JSON and with the 
     # Location header set to the location of the user
@@ -232,16 +233,15 @@ def post_put():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    check_post_id(data["id"])
 
     # Init post object with id=data["id"]
-    post = session.query(models.Post).get(data["id"])
+    post = check_post_id(data["id"])
 
     # Update target post
     data.pop("id", None)
     for key, value in data.items():
         setattr(post, key, value)
-    session.commit()
+    post.put()
 
     data = json.dumps(post.as_dictionary(), default=json_serial)
     headers = {"Location": url_for("post_get", elect_id=post.id)}
@@ -261,14 +261,12 @@ def user_put():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    check_user_id(data["id"])
 
     # Init user object with id=data["id"]
-    user = session.query(models.User).get(data["id"])
+    user = check_user_id(data["id"])
 
     if data["email"] != user.email:
-        user_verify = session.query(models.Users).filter(
-            model.Users.email == data["email"]).first()
+        user_verify = models.Users.query(models.Users.email == data["email"])
         if user_verify:
             message = "User with email {} already exists.".format(
                 duplicate_user.id)
@@ -279,7 +277,7 @@ def user_put():
     data.pop("id", None)
     for key, value in data.items():
         setattr(user, key, value)
-    session.commit()
+    user.put()
 
     data = json.dumps(user.as_dictionary(), default=json_serial)
     headers = {"Location": url_for("user_get", elect_id=user.id)}
@@ -303,12 +301,10 @@ def post_delete():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    check_post_id(data["id"])
+    post = check_post_id(data["id"])
 
     # Deletes post object with id=data["id"]
-    post = session.query(models.Post).get(data["id"])
-    session.delete(post)
-    session.commit()
+    post.key.delete()
 
     message = "Deleted post id #{}".format(data["id"])
     data = json.dumps({"message": message})
@@ -330,12 +326,10 @@ def user_delete():
         data = {"message": error.message}
         return Response(json.dumps(data), 422, mimetype="application/json")
 
-    check_user_id(data["id"])
+    user = check_user_id(data["id"])
 
     # Deletes user object with id=data["id"]
-    user = session.query(models.User).get(data["id"])
-    session.delete(user)
-    session.commit()
+    user.key.delete()
 
     message = "Deleted user id #{}".format(data["id"])
     data = json.dumps({"message": message})
