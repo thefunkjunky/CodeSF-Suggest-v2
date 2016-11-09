@@ -12,11 +12,7 @@ from google.appengine.ext import testbed
 os.environ["CONFIG_PATH"] = "codesf_suggest.config.TestingConfig"
 
 from codesf_suggest.main import app
-
-
-
-
-
+from codesf_suggest import models
 
 class TestAPI(unittest.TestCase):
     """ Tests for the API """
@@ -37,9 +33,32 @@ class TestAPI(unittest.TestCase):
         # using ndb.get_context().set_cache_policy(False)
         ndb.get_context().clear_cache()
 
+    def populateDB(self):
+        pass
 
+    def test_unsupported_accept_header(self):
+        response = self.client.get("/api/posts",
+            headers=[("Accept", "application/xml")]
+            )
+        self.assertEqual(response.status_code, 406)
+        self.assertEqual(response.mimetype, "application/json")
+
+        data = json.loads(response.data.decode("ascii"))
+        self.assertEqual(data["message"],
+            "Request must accept application/json data")
+
+    def test_get_empty_datasets(self):
+        """ Getting posts, users from an empty database """
+        endpoints = ["posts", "users",]
+        for endpoint in endpoints:
+            response = self.client.get("/api/{}".format(endpoint),
+                headers=[("Accept", "application/json")])
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.mimetype, "application/json")
+
+            data = json.loads(response.data.decode("ascii"))
+            self.assertEqual(data, [])
 
     def tearDown(self):
         """ Test teardown """
         self.testbed.deactivate()
-

@@ -1,14 +1,15 @@
 
 from google.appengine.ext import ndb
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 
 class User(ndb.Model):
     """ Base User Class """
-    password = ndb.StringProperty()
+    password_ = ndb.StringProperty()
     name = ndb.StringProperty()
     username = ndb.StringProperty()
-    email = ndb.StringProperty()
+    email = ndb.KeyProperty(repeated=True)
     organization = ndb.StringProperty()
     position = ndb.StringProperty()
     description = ndb.StringProperty()
@@ -18,6 +19,16 @@ class User(ndb.Model):
 
     # Foreign relationships
     # posts = ndb.StructuredProperty(Post, repeated=True)
+
+    @property
+    def password(self):
+        return self.password_
+
+    @password.setter
+    def password(self, value):
+        if value:
+            self.password_ = generate_password_hash(value, method='pbkdf2:sha256', salt_length=16)
+            self.put()
 
     def as_dictionary(self):
         user_dict = {
