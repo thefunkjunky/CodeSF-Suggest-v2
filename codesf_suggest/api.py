@@ -179,7 +179,7 @@ def posts_post():
         return Response(json.dumps(data), 422, mimetype="application/json")
 
     user = check_user_id(user_id)
-    post = models.Post(parent=user.key, data**)
+    post = models.Post(parent=user.key, **data)
 
     # Return a 201 Created, containing the post as JSON and with the 
     # Location header set to the location of the post
@@ -207,7 +207,7 @@ def users_post():
         data = json.dumps({"message": message})
         return Response(data, 403, mimetype="application/json")
 
-    user = models.User(data**)
+    user = models.User(**data)
     user.put()
 
     # Return a 201 Created, containing the user as JSON and with the 

@@ -4,12 +4,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 
 
-class User(ndb.Model):
+class User(ndb.Expando):
     """ Base User Class """
     password_ = ndb.StringProperty()
     name = ndb.StringProperty()
     username = ndb.StringProperty()
-    email = ndb.KeyProperty(repeated=True)
+    email = ndb.StringProperty()
     organization = ndb.StringProperty()
     position = ndb.StringProperty()
     description = ndb.StringProperty()
@@ -27,7 +27,7 @@ class User(ndb.Model):
     @password.setter
     def password(self, value):
         if value:
-            self.password_ = generate_password_hash(value, method='pbkdf2:sha256', salt_length=16)
+            self.password_ = generate_password_hash(str(value), method='pbkdf2:sha256', salt_length=16)
             self.put()
 
     def as_dictionary(self):
@@ -56,9 +56,7 @@ class Post(ndb.Model):
     last_modified = ndb.DateTimeProperty(auto_now=True)
     slack = ndb.StringProperty()
 
-    # user = ndb.KeyProperty(kind=User)
-
-
+    user = ndb.KeyProperty(kind=User)
 
     def as_dictionary(self):
         post_dict = {
@@ -72,15 +70,13 @@ class Post(ndb.Model):
         "slack": self.slack,
         }
 
-
 class TestUser(User):
-    """ Test User Class """
+    """Test User Class"""
     pass
-''
-
 
 class TestPost(Post):
-    """ Test Post Class """
+    """Test Post Class"""
+    user = ndb.KeyProperty(kind=TestUser)
     pass
 
 
